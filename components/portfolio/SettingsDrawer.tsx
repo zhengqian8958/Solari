@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions, Animated } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { PORTFOLIO_COLORS } from '../../constants/portfolioTheme'
+import { useAuth } from '../auth/auth-provider'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const DRAWER_WIDTH = SCREEN_WIDTH * (2 / 3)
@@ -14,6 +15,7 @@ interface SettingsDrawerProps {
 export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
     const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current
     const [modalVisible, setModalVisible] = useState(false)
+    const { signOut } = useAuth()
 
     useEffect(() => {
         if (visible) {
@@ -44,6 +46,15 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
 
     const handleClose = () => {
         onClose()
+    }
+
+    const handleLogout = async () => {
+        try {
+            await signOut()
+            handleClose()
+        } catch (error) {
+            console.error('Error disconnecting wallet:', error)
+        }
     }
 
     return (
@@ -85,6 +96,14 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                         </View>
                         <Text style={styles.menuText}>Settings</Text>
                         <MaterialCommunityIcons name="chevron-right" size={24} color="#64748b" />
+                    </TouchableOpacity>
+
+                    {/* Log Out button */}
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <View style={styles.logoutIconContainer}>
+                            <MaterialCommunityIcons name="logout" size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.logoutText}>Log Out</Text>
                     </TouchableOpacity>
                 </Animated.View>
             </View>
@@ -156,6 +175,34 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         color: '#000',
+        flex: 1,
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        marginTop: 'auto',
+    },
+    logoutIconContainer: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        backgroundColor: '#ef4444',
+        borderWidth: 2,
+        borderColor: '#000',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+    },
+    logoutText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#ef4444',
         flex: 1,
     },
 })
