@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { usePortfolio } from '../../../store/portfolioStore'
 import { PieChart } from '../../../components/portfolio/PieChart'
 import { PortfolioSummary } from '../../../components/portfolio/PortfolioSummary'
@@ -90,7 +89,7 @@ export default function PortfolioIndexScreen() {
     }))
 
     return (
-        <GestureHandlerRootView style={styles.container}>
+        <View style={styles.container}>
             <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
                 <PortfolioHeader
                     title="My Vault ✨"
@@ -171,7 +170,7 @@ export default function PortfolioIndexScreen() {
                     onClose={() => setShowSettingsDrawer(false)}
                 />
             </LinearGradient>
-        </GestureHandlerRootView>
+        </View>
     )
 }
 

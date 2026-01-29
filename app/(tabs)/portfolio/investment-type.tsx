@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { usePortfolio } from '../../../store/portfolioStore'
 import { PieChart } from '../../../components/portfolio/PieChart'
@@ -87,7 +86,7 @@ export default function InvestmentTypeScreen() {
     const hasAssets = investmentType.assets.length > 0
 
     return (
-        <GestureHandlerRootView style={styles.container}>
+        <View style={styles.container}>
             <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
                 <PortfolioHeader
                     title={`${investmentType.name} Portfolio`}
@@ -197,7 +196,7 @@ export default function InvestmentTypeScreen() {
                     onClose={() => setShowSettingsDrawer(false)}
                 />
             </LinearGradient>
-        </GestureHandlerRootView>
+        </View>
     )
 }
 

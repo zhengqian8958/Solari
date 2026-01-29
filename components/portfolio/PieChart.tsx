@@ -29,7 +29,16 @@ export function PieChart({
 
     let accumulatedPercentage = 0
 
-    // Calculate which segment was touched based on angle
+    // Add mounting delay to avoid Fabric race condition
+    const [isMounted, setIsMounted] = React.useState(false)
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsMounted(true)
+        }, 100)
+        return () => clearTimeout(timer)
+    }, [])
+
     const handlePress = (event: GestureResponderEvent) => {
         if (!onSegmentPress || segments.length === 0) return
 
@@ -68,6 +77,11 @@ export function PieChart({
         if (segments.length > 0) {
             onSegmentPress(segments[segments.length - 1].id)
         }
+    }
+
+    // Don't render SVG until component is mounted to avoid Fabric issues
+    if (!isMounted) {
+        return <View style={[styles.container, { width: size, height: size }]} />
     }
 
     return (

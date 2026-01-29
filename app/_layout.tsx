@@ -4,7 +4,8 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import 'react-native-reanimated'
 import { AppProviders } from '@/components/app-providers'
-import { useCallback } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { useCallback, useEffect, useState } from 'react'
 import * as SplashScreen from 'expo-splash-screen'
 import { View } from 'react-native'
 import { useTrackLocations } from '@/hooks/use-track-locations'
@@ -42,19 +43,38 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <AppProviders>
-        <AppSplashController />
-        <RootNavigator />
-        <StatusBar style="auto" />
-      </AppProviders>
-      <PortalHost />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <AppProviders>
+          <AppSplashController />
+          <RootNavigator />
+          <StatusBar style="auto" />
+        </AppProviders>
+        <PortalHost />
+      </View>
+    </GestureHandlerRootView>
   )
 }
 
 function RootNavigator() {
   const { isAuthenticated } = useAuth()
+  const [isReady, setIsReady] = useState(false)
+
+  // Transition safety: When auth changes, briefly show splash/nothing
+  // to allow the previous screen to unmount cleanly before the new one mounts.
+  // This prevents "RetryableMountingLayerException" in Fabric.
+  useEffect(() => {
+    setIsReady(false)
+    const timer = setTimeout(() => {
+      setIsReady(true)
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [isAuthenticated])
+
+  if (!isReady) {
+    return <AppSplashController />
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={isAuthenticated}>
