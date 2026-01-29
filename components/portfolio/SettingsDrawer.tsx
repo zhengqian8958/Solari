@@ -98,12 +98,13 @@ export function SettingsDrawer({ visible, onClose }: SettingsDrawerProps) {
                         <MaterialCommunityIcons name="chevron-right" size={24} color="#64748b" />
                     </TouchableOpacity>
 
-                    {/* Log Out button */}
+                    {/* Sign Out button */}
                     <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                         <View style={styles.logoutIconContainer}>
-                            <MaterialCommunityIcons name="logout" size={24} color="#fff" />
+                            <MaterialCommunityIcons name="logout" size={24} color="#000" />
                         </View>
-                        <Text style={styles.logoutText}>Log Out</Text>
+                        <Text style={styles.logoutText}>Sign Out</Text>
+                        <MaterialCommunityIcons name="chevron-right" size={24} color="#64748b" />
                     </TouchableOpacity>
                 </Animated.View>
             </View>
@@ -184,12 +185,14 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 20,
         marginTop: 'auto',
+        borderTopWidth: 2,
+        borderTopColor: '#f1f5f9',
     },
     logoutIconContainer: {
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: '#ef4444',
+        backgroundColor: PORTFOLIO_COLORS['anime-pink'],
         borderWidth: 2,
         borderColor: '#000',
         justifyContent: 'center',
