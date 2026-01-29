@@ -49,7 +49,6 @@ export default function SignIn() {
             ]}
             onPress={async () => {
               await signIn()
-              router.replace('/')
             }}
           >
             <Text style={styles.connectButtonText}>CONNECT WALLET</Text>
