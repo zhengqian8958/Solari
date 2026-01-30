@@ -21,7 +21,7 @@ export interface WalletAsset {
 }
 
 export function useWalletAssets(publicKey: PublicKey | null) {
-    return useQuery({
+    const query = useQuery({
         queryKey: ['wallet-assets', publicKey?.toBase58()],
         queryFn: async (): Promise<WalletAsset[]> => {
             if (!publicKey) return []
@@ -197,6 +197,12 @@ export function useWalletAssets(publicKey: PublicKey | null) {
             }
         },
         enabled: !!publicKey,
-        refetchInterval: 30000,
+        refetchOnWindowFocus: false, // No auto-refresh, only manual
     })
+
+    return {
+        data: query.data,
+        isLoading: query.isLoading,
+        refetch: query.refetch,
+    }
 }

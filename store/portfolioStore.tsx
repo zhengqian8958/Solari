@@ -50,7 +50,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         return null
     }, [accounts])
 
-    const { data: realAssets, isLoading: isAssetsLoading } = useWalletAssets(publicKey)
+    const { data: realAssets, isLoading: isAssetsLoading, refetch: refetchAssets } = useWalletAssets(publicKey)
 
     console.log(`PortfolioStore Render: PK=${publicKey?.toBase58().substring(0, 6)}.., realAssets=${realAssets?.length}, loading=${isAssetsLoading}`)
 
@@ -317,6 +317,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     const setSelectedInvestmentType = (id: string | null) => {
         setSelectedInvestmentTypeId(id)
+        // Trigger refetch to get fresh prices when switching views
+        refetchAssets()
     }
 
     const getInvestmentType = (id: string): InvestmentType | undefined => {

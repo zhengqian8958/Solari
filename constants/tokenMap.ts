@@ -5,6 +5,10 @@ export const TOKEN_CATEGORY_MAP: Record<string, string> = {
 
     // Crypto (Default fallbacks or specific majors like SOL)
     'So11111111111111111111111111111111111111112': 'crypto', // SOL
+
+    // Commodities (gold and silver)
+    'Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re': 'commodities', // Gold
+    '7C56WnJ94iEP7YeH2iKiYpvsS5zkcpP9rJBBEBoUGdzj': 'commodities', // Silver
 }
 
 export const FALLBACK_CATEGORY = 'crypto'
