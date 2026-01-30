@@ -85,9 +85,38 @@ export const INVESTMENT_COLOR_FAMILIES: Record<string, string[]> = {
 }
 
 /**
+ * Standard diverse palette for pie charts with many segments
+ * Matches the anime/cel-shaded theme
+ */
+export const STANDARD_PIE_COLORS = [
+    '#ff85a2', // pink
+    '#72d5ff', // blue
+    '#b794f4', // purple
+    '#fbd38d', // yellow
+    '#ffb37e', // orange
+    '#81e6d9', // mint
+    '#fc8181', // red
+    '#63b3ed', // dark blue
+    '#f6ad55', // orange-dark
+    '#68d391', // green
+    '#76e4f7', // cyan
+    '#d6bcfa', // light purple
+]
+
+/**
  * Get color shades for a specific investment type
  */
 export function getInvestmentTypeShades(investmentTypeId: string, count: number = 6): string[] {
+    // If we have many assets, use the diverse palette to avoid "black" shades and ensure distinctness
+    // User requested general pie chart colors if > 5 assets
+    if (count > 5) {
+        const colors: string[] = []
+        for (let i = 0; i < count; i++) {
+            colors.push(STANDARD_PIE_COLORS[i % STANDARD_PIE_COLORS.length])
+        }
+        return colors
+    }
+
     const predefinedShades = INVESTMENT_COLOR_FAMILIES[investmentTypeId]
 
     if (predefinedShades && predefinedShades.length >= count) {

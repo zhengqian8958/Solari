@@ -83,3 +83,87 @@ export async function fetchAssetsByOwner(ownerAddress: string): Promise<HeliusAs
         return [];
     }
 }
+
+/**
+ * Fetch detailed asset information (including price) for a list of mint IDs
+ */
+export async function fetchAssetBatch(ids: string[]): Promise<HeliusAsset[]> {
+    if (!ids.length) return [];
+
+    if (!HELIUS_API_KEY || HELIUS_API_KEY.includes('your-helius-api-key')) {
+        return [];
+    }
+
+    // Chunk into batches of 1000 (Helius limit is usually 1000 for getAssetBatch)
+    const chunks = [];
+    for (let i = 0; i < ids.length; i += 1000) {
+        chunks.push(ids.slice(i, i + 1000));
+    }
+
+    const allAssets: HeliusAsset[] = [];
+
+    for (const chunk of chunks) {
+        try {
+            const response = await fetch(HELIUS_RPC_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: 'seeker-asset-batch',
+                    method: 'getAssetBatch',
+                    params: {
+                        ids: chunk,
+                        displayOptions: {
+                            showFungible: true,
+                            showNativeBalance: true,
+                        },
+                    },
+                }),
+            });
+
+            if (!response.ok) {
+                console.error('Helius Batch Error:', response.status);
+                continue;
+            }
+
+            const data = await response.json();
+            if (data.error) {
+                console.error('Helius Batch RPC Error:', data.error);
+                continue;
+            }
+
+            if (data.result) {
+                allAssets.push(...data.result);
+            }
+        } catch (error) {
+            console.error('Failed to fetch batch assets:', error);
+        }
+    }
+
+    return allAssets;
+}
+
+/**
+ * Fetch native SOL balance
+ */
+export async function fetchSolBalance(address: string): Promise<number> {
+    try {
+        const response = await fetch(HELIUS_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 'get-sol-balance',
+                method: 'getBalance',
+                params: [address],
+            }),
+        });
+        const data = await response.json();
+        return data.result?.value || 0;
+    } catch (error) {
+        console.error('Failed to fetch SOL balance:', error);
+        return 0;
+    }
+}
