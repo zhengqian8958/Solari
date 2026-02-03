@@ -33,7 +33,7 @@ export function PortfolioSummary({
 
     // If percentage is provided, show portfolio allocation badge
     const showPercentageBadge = percentage !== undefined && icon && color
-    const bgColor = color ? INVESTMENT_TYPE_COLORS[color] : PORTFOLIO_COLORS['anime-pink']
+    const bgColor = color ? PORTFOLIO_COLORS[color as keyof typeof PORTFOLIO_COLORS] : PORTFOLIO_COLORS['anime-pink']
 
     // For change badge (main hub view)
     const isPositive = change >= 0
@@ -67,7 +67,11 @@ export function PortfolioSummary({
                         { backgroundColor: isPositive ? PORTFOLIO_COLORS['anime-mint'] : PORTFOLIO_COLORS['anime-pink'] },
                     ]}
                 >
-                    <Text style={styles.changeIcon}>{isPositive ? '📈' : '📉'}</Text>
+                    <Image
+                        source={isPositive ? require('../../assets/icons/increase.png') : require('../../assets/icons/decrease.png')}
+                        style={styles.iconImage}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.changeText}>{formattedChange}</Text>
                 </View>
             )}
