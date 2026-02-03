@@ -91,12 +91,12 @@ function TypeOption({
 // Map icon names to image sources
 function getIconImage(iconName: string) {
     const iconMap: Record<string, any> = {
-        monitoring: require('../../assets/icons/stock.png'),
-        token: require('../../assets/icons/crypto.png'),
-        home_work: require('../../assets/icons/real_estate.png'),
-        request_quote: require('../../assets/icons/bonds.png'),
-        agriculture: require('../../assets/icons/commodities.png'),
-        account_balance_wallet: require('../../assets/icons/cash.png'),
+        monitoring: require('../../assets/icons/stock_color.png'),
+        token: require('../../assets/icons/crypto_color.png'),
+        home_work: require('../../assets/icons/real_estate_color.png'),
+        request_quote: require('../../assets/icons/bonds_color.png'),
+        agriculture: require('../../assets/icons/commodities_color.png'),
+        account_balance_wallet: require('../../assets/icons/cash_color.png'),
     }
     return iconMap[iconName] || iconMap.monitoring
 }
