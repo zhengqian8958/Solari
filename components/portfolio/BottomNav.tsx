@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { View, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import type { InvestmentType } from '../../types/portfolio.types'
 import { INVESTMENT_TYPE_COLORS, PORTFOLIO_COLORS } from '../../constants/portfolioTheme'
@@ -11,13 +11,24 @@ interface BottomNavProps {
     onAddType: () => void
 }
 
+// Icon mapping for investment types
+const ICON_SOURCES: Record<string, any> = {
+    'hub': require('../../assets/icons/hub_color.png'),
+    'monitoring': require('../../assets/icons/stock_color.png'),
+    'token': require('../../assets/icons/crypto_color.png'),
+    'home_work': require('../../assets/icons/real_estate_color.png'),
+    'request_quote': require('../../assets/icons/bonds_color.png'),
+    'agriculture': require('../../assets/icons/commodities_color.png'),
+    'account_balance_wallet': require('../../assets/icons/cash_color.png'),
+}
+
 export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }: BottomNavProps) {
     const allTabs = [
-        { id: null, name: 'Hub', icon: 'home', color: 'anime-pink' },
+        { id: null, name: 'Hub', icon: 'hub', color: 'anime-pink' },
         ...investmentTypes.map((type) => ({
             id: type.id,
             name: type.name,
-            icon: getIconName(type.icon),
+            icon: type.icon,
             color: type.color,
         })),
     ]
@@ -32,7 +43,7 @@ export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }
                 >
                     {allTabs.map((tab) => {
                         const isActive = tab.id === activeTab
-                        const tabColor = INVESTMENT_TYPE_COLORS[tab.color] || PORTFOLIO_COLORS['anime-pink']
+                        const iconSource = ICON_SOURCES[tab.icon] || ICON_SOURCES['hub']
 
                         return (
                             <TouchableOpacity
@@ -40,19 +51,18 @@ export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }
                                 style={styles.tab}
                                 onPress={() => onTabChange(tab.id)}
                             >
-                                <MaterialCommunityIcons
-                                    name={tab.icon as any}
-                                    size={isActive ? 36 : 24}
-                                    color={isActive ? tabColor : '#94a3b8'}
-                                />
-                                <Text
+                                <Image
+                                    source={iconSource}
                                     style={[
-                                        styles.tabLabel,
-                                        { color: isActive ? tabColor : '#94a3b8' },
+                                        styles.iconImage,
+                                        {
+                                            width: isActive ? 60 : 36,
+                                            height: isActive ? 60 : 36,
+                                            opacity: isActive ? 1 : 0.8
+                                        }
                                     ]}
-                                >
-                                    {tab.name.toUpperCase()}
-                                </Text>
+                                    resizeMode="contain"
+                                />
                             </TouchableOpacity>
                         )
                     })}
@@ -67,18 +77,6 @@ export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }
             <View style={styles.bottomSafeArea} />
         </View>
     )
-}
-
-function getIconName(systemIcon: string): string {
-    const iconMap: Record<string, string> = {
-        monitoring: 'chart-line',
-        token: 'bitcoin',
-        home_work: 'office-building',
-        request_quote: 'file-document',
-        agriculture: 'barley',
-        account_balance_wallet: 'wallet',
-    }
-    return iconMap[systemIcon] || 'circle'
 }
 
 const styles = StyleSheet.create({
@@ -106,6 +104,9 @@ const styles = StyleSheet.create({
         gap: 4,
         minWidth: 64,
         paddingHorizontal: 8,
+    },
+    iconImage: {
+        // Dynamic size and opacity are applied inline
     },
     tabLabel: {
         fontSize: 10,
