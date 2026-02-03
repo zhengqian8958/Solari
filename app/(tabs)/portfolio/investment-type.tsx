@@ -100,6 +100,9 @@ export default function InvestmentTypeScreen() {
                         totalValue={investmentType.totalValue}
                         change={investmentType.change}
                         changePercentage={investmentType.changePercentage}
+                        percentage={investmentType.percentage}
+                        icon={investmentType.icon}
+                        color={investmentType.color}
                     />
 
                     {hasAssets ? (
