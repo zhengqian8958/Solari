@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { PORTFOLIO_COLORS, INVESTMENT_TYPE_COLORS } from '../../constants/portfolioTheme'
 
@@ -34,7 +34,7 @@ export function AssetCard({
         <View style={[styles.card, { backgroundColor }]}>
             <View style={styles.leftSection}>
                 <View style={styles.iconContainer}>
-                    <Text style={styles.iconEmoji}>{getIconEmoji(icon)}</Text>
+                    <Image source={getIconImage(icon)} style={styles.iconImage} />
                 </View>
                 <View style={styles.info}>
                     <Text style={styles.name}>{name}</Text>
@@ -73,17 +73,17 @@ export function AssetCard({
     return content
 }
 
-// Map icon names to emojis
-function getIconEmoji(iconName: string): string {
-    const emojiMap: Record<string, string> = {
-        monitoring: '📈',
-        token: '🪙',
-        home_work: '🏢',
-        request_quote: '📜',
-        agriculture: '🌾',
-        account_balance_wallet: '💰',
+// Map icon names to image sources
+function getIconImage(iconName: string) {
+    const iconMap: Record<string, any> = {
+        monitoring: require('../../assets/icons/stock.png'),
+        token: require('../../assets/icons/crypto.png'),
+        home_work: require('../../assets/icons/real_estate.png'),
+        request_quote: require('../../assets/icons/bonds.png'),
+        agriculture: require('../../assets/icons/commodities.png'),
+        account_balance_wallet: require('../../assets/icons/cash.png'),
     }
-    return emojiMap[iconName] || '💎'
+    return iconMap[iconName] || iconMap.monitoring
 }
 
 const styles = StyleSheet.create({
@@ -122,8 +122,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 0,
     },
-    iconEmoji: {
-        fontSize: 28,
+    iconImage: {
+        width: 36,
+        height: 36,
+        resizeMode: 'contain',
     },
     info: {
         flex: 1,

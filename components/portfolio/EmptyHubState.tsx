@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { SYSTEM_INVESTMENT_TYPES } from '../../constants/systemInvestmentTypes'
 import { INVESTMENT_TYPE_COLORS } from '../../constants/portfolioTheme'
@@ -25,7 +25,7 @@ export function EmptyHubState({ onSelectType }: EmptyHubStateProps) {
                         onPress={() => onSelectType(type.id)}
                     >
                         <View style={styles.iconContainer}>
-                            <Text style={styles.icon}>{getTypeEmoji(type.icon)}</Text>
+                            <Image source={getIconImage(type.icon)} style={styles.iconImage} />
                         </View>
                         <Text style={styles.typeName}>{type.name}</Text>
                     </TouchableOpacity>
@@ -35,16 +35,17 @@ export function EmptyHubState({ onSelectType }: EmptyHubStateProps) {
     )
 }
 
-function getTypeEmoji(iconName: string): string {
-    const emojiMap: Record<string, string> = {
-        monitoring: '📈',
-        token: '🪙',
-        home_work: '🏢',
-        request_quote: '📜',
-        agriculture: '🌾',
-        account_balance_wallet: '💰',
+// Map icon names to image sources
+function getIconImage(iconName: string) {
+    const iconMap: Record<string, any> = {
+        monitoring: require('../../assets/icons/stock.png'),
+        token: require('../../assets/icons/crypto.png'),
+        home_work: require('../../assets/icons/real_estate.png'),
+        request_quote: require('../../assets/icons/bonds.png'),
+        agriculture: require('../../assets/icons/commodities.png'),
+        account_balance_wallet: require('../../assets/icons/cash.png'),
     }
-    return emojiMap[iconName] || '💎'
+    return iconMap[iconName] || iconMap.monitoring
 }
 
 const styles = StyleSheet.create({
@@ -104,8 +105,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    icon: {
-        fontSize: 32,
+    iconImage: {
+        width: 40,
+        height: 40,
+        resizeMode: 'contain',
     },
     typeName: {
         fontSize: 14,

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Modal, View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native'
+import { Modal, View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { SYSTEM_INVESTMENT_TYPES } from '../../constants/systemInvestmentTypes'
 import { INVESTMENT_TYPE_COLORS } from '../../constants/portfolioTheme'
@@ -80,7 +80,7 @@ function TypeOption({
             onPress={() => onSelect(type.id)}
         >
             <View style={styles.typeIconContainer}>
-                <Text style={styles.typeIcon}>{getTypeEmoji(type.icon)}</Text>
+                <Image source={getIconImage(type.icon)} style={styles.iconImage} />
             </View>
             <Text style={styles.typeName}>{type.name}</Text>
             <MaterialCommunityIcons name="plus-circle" size={28} color="#000" />
@@ -88,16 +88,17 @@ function TypeOption({
     )
 }
 
-function getTypeEmoji(iconName: string): string {
-    const emojiMap: Record<string, string> = {
-        monitoring: '📈',
-        token: '🪙',
-        home_work: '🏢',
-        request_quote: '📜',
-        agriculture: '🌾',
-        account_balance_wallet: '💰',
+// Map icon names to image sources
+function getIconImage(iconName: string) {
+    const iconMap: Record<string, any> = {
+        monitoring: require('../../assets/icons/stock.png'),
+        token: require('../../assets/icons/crypto.png'),
+        home_work: require('../../assets/icons/real_estate.png'),
+        request_quote: require('../../assets/icons/bonds.png'),
+        agriculture: require('../../assets/icons/commodities.png'),
+        account_balance_wallet: require('../../assets/icons/cash.png'),
     }
-    return emojiMap[iconName] || '💎'
+    return iconMap[iconName] || iconMap.monitoring
 }
 
 const styles = StyleSheet.create({
@@ -163,8 +164,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    typeIcon: {
-        fontSize: 24,
+    iconImage: {
+        width: 32,
+        height: 32,
+        resizeMode: 'contain',
     },
     typeName: {
         fontSize: 18,
