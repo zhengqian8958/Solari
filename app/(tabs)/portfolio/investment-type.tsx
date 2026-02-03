@@ -127,6 +127,8 @@ export default function InvestmentTypeScreen() {
                                                 {investmentType.changePercentage >= 0 ? '+' : ''}{investmentType.changePercentage.toFixed(2)}%
                                             </Text>
                                         </View>
+                                        {/* Separator line */}
+                                        <View style={styles.centerSeparator} />
                                         {/* Second line: Value */}
                                         <Text style={[
                                             styles.centerValue,
@@ -262,6 +264,12 @@ const styles = StyleSheet.create({
     centerPercentage: {
         fontSize: 28,
         fontWeight: '900',
+    },
+    centerSeparator: {
+        width: 120,
+        height: 2,
+        backgroundColor: '#000',
+        marginVertical: 6,
     },
     centerValue: {
         fontSize: 20,
