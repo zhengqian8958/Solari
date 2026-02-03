@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -108,10 +108,32 @@ export default function InvestmentTypeScreen() {
                             <View style={styles.pieChartSection}>
                                 <View style={styles.pieChartContainer}>
                                     <PieChart segments={pieSegments} size={300} interactive={false} />
-                                    {/* Center label */}
+                                    {/* Center label - Change info */}
                                     <View style={styles.centerLabel}>
-                                        <Text style={styles.centerLabelSmall}>ALLOCATION</Text>
-                                        <Text style={styles.centerLabelLarge}>100%</Text>
+                                        {/* First line: Icon + Percentage */}
+                                        <View style={styles.centerRow}>
+                                            <Image
+                                                source={investmentType.change >= 0
+                                                    ? require('../../../assets/icons/increase.png')
+                                                    : require('../../../assets/icons/decrease.png')
+                                                }
+                                                style={styles.changeIcon}
+                                                resizeMode="contain"
+                                            />
+                                            <Text style={[
+                                                styles.centerPercentage,
+                                                { color: investmentType.change >= 0 ? '#10b981' : '#ef4444' }
+                                            ]}>
+                                                {investmentType.changePercentage >= 0 ? '+' : ''}{investmentType.changePercentage.toFixed(2)}%
+                                            </Text>
+                                        </View>
+                                        {/* Second line: Value */}
+                                        <Text style={[
+                                            styles.centerValue,
+                                            { color: investmentType.change >= 0 ? '#10b981' : '#ef4444' }
+                                        ]}>
+                                            {investmentType.change >= 0 ? '+' : ''}${Math.abs(investmentType.change).toLocaleString()}
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
@@ -227,17 +249,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         pointerEvents: 'none',
     },
-    centerLabelSmall: {
-        fontSize: 12,
-        fontWeight: '900',
-        color: '#000',
-        letterSpacing: 2,
+    centerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
         marginBottom: 4,
     },
-    centerLabelLarge: {
-        fontSize: 36,
+    changeIcon: {
+        width: 24,
+        height: 24,
+    },
+    centerPercentage: {
+        fontSize: 28,
         fontWeight: '900',
-        color: '#000',
+    },
+    centerValue: {
+        fontSize: 20,
+        fontWeight: '700',
     },
     assetsSection: {
         paddingHorizontal: 16,
