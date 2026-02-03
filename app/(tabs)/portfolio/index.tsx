@@ -124,7 +124,7 @@ export default function PortfolioIndexScreen() {
 
                     {/* Asset Squad Section */}
                     <View style={styles.assetsSection}>
-                        <Text style={styles.sectionTitle}>✨ Asset Squad</Text>
+                        <Text style={styles.sectionTitle}>Asset Squad</Text>
 
                         <View style={styles.assetsList}>
                             {portfolio.investmentTypes.map((type, index) => (

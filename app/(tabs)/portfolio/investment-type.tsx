@@ -119,13 +119,6 @@ export default function InvestmentTypeScreen() {
                             {/* Assets Section */}
                             <View style={styles.assetsSection}>
                                 <Text style={styles.sectionTitle}>
-                                    {investmentType.icon === 'monitoring'
-                                        ? '📈'
-                                        : investmentType.icon === 'token'
-                                            ? '🪙'
-                                            : investmentType.icon === 'home_work'
-                                                ? '🏢'
-                                                : '💎'}{' '}
                                     {investmentType.name} Assets
                                 </Text>
 
