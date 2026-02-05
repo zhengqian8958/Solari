@@ -60,7 +60,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     const { data: realAssets, isLoading: isAssetsLoading, refetch: refetchAssets } = useWalletAssets(publicKey)
 
-    console.log(`PortfolioStore Render: PK=${publicKey?.toBase58().substring(0, 6)}.., realAssets=${realAssets?.length}, loading=${isAssetsLoading}`)
+    const now = new Date().toISOString().substring(11, 23)
+    console.log(`[${now}] PortfolioStore Render: PK=${publicKey?.toBase58().substring(0, 6)}.., realAssets=${realAssets?.length}, loading=${isAssetsLoading}`)
 
     const [portfolio, setPortfolio] = useState<Portfolio>({
         totalValue: 0,
@@ -69,21 +70,25 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         investmentTypes: [],
     })
     const [isLoadingStorage, setIsLoadingStorage] = useState(true)
+    const [isLoadingSnapshot, setIsLoadingSnapshot] = useState(true)
 
     // Load data from AsyncStorage on mount
     useEffect(() => {
         loadAllData()
-        // Load snapshot in background (non-blocking)
+        // Load snapshot in background - will trigger re-render when complete
         loadSnapshotAsync()
     }, [])
 
     // Regenerate portfolio when data changes
     useEffect(() => {
-        // Wait for BOTH storage load AND assets to be ready
-        if (!isLoadingStorage && !isAssetsLoading) {
+        // Critical: Only regenerate when we have ACTUAL DATA ready
+        // Don't regenerate on empty/null states
+        if (publicKey && realAssets && realAssets.length > 0) {
+            const now = new Date().toISOString().substring(11, 23)
+            console.log(`[${now}] Triggering portfolio regeneration`)
             regeneratePortfolio()
         }
-    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, isAssetsLoading, realAssets, previousSnapshot])
+    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, isLoadingSnapshot, isAssetsLoading, realAssets, previousSnapshot, publicKey])
 
     const loadAllData = async () => {
         try {
@@ -122,13 +127,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    // Load snapshot asynchronously in background (non-blocking)
+    // Load snapshot asynchronously - must complete before portfolio regeneration
     const loadSnapshotAsync = async () => {
         try {
             const snapshot = await loadPreviousSnapshot()
             setPreviousSnapshot(snapshot)
         } catch (error) {
             console.error('Error loading previous snapshot:', error)
+        } finally {
+            setIsLoadingSnapshot(false)
         }
     }
 
@@ -142,7 +149,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
         // Initialize with real assets
         if (realAssets) {
-            console.log('PortfolioStore: processing realAssets:', realAssets.length);
+            const now = new Date().toISOString().substring(11, 23)
+            console.log(`[${now}] PortfolioStore: processing realAssets:`, realAssets.length);
             realAssets.forEach(walletAsset => {
                 const categoryId = walletAsset.categoryId;
                 if (!assetsByCategory[categoryId]) {
@@ -181,7 +189,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 console.log('PortfolioStore: crypto assets count:', assetsByCategory['crypto'].length);
             }
         } else {
-            console.log('PortfolioStore: realAssets is null/undefined');
+            const now = new Date().toISOString().substring(11, 23)
+            console.log(`[${now}] PortfolioStore: realAssets is null/undefined`);
         }
 
         // 2. Mix with Custom Assets & Filter Removed
@@ -386,7 +395,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 getAssetsByInvestmentType,
                 removeAsset,
                 addAsset,
-                isLoading: isLoadingStorage || isAssetsLoading,
+                isLoading: !publicKey || isAssetsLoading || !realAssets,
             }}
         >
             {children}

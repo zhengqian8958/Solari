@@ -26,11 +26,13 @@ export function useWalletAssets(publicKey: PublicKey | null) {
         queryFn: async (): Promise<WalletAsset[]> => {
             if (!publicKey) return []
 
-            console.log('Fetching assets for:', publicKey.toBase58())
+            const startTime = new Date().toISOString().substring(11, 23)
+            console.log(`[${startTime}] Fetching assets for:`, publicKey.toBase58())
 
             // 1. Fetch Basic List (IDs)
             const heliusAssetsBasic = await fetchAssetsByOwner(publicKey.toBase58())
-            console.log('Fetched basic assets count:', heliusAssetsBasic.length)
+            const basicTime = new Date().toISOString().substring(11, 23)
+            console.log(`[${basicTime}] Fetched basic assets count:`, heliusAssetsBasic.length)
 
             // 1b. Fetch Native SOL Balance manually (since displayOptions seems flaky)
             const solLamports = await fetchSolBalance(publicKey.toBase58());
@@ -88,10 +90,22 @@ export function useWalletAssets(publicKey: PublicKey | null) {
 
             if (allAssetsCombined.length === 0) return []
 
-            // 2. Fetch Detailed Info (Prices) via Batch
+            // OPTIMIZATION: Filter to only assets with non-zero balance before expensive price fetch
+            // This dramatically reduces API call time (from 15s for 42 assets to ~2s for 5 assets)
+            const assetsWithBalance = allAssetsCombined.filter(a => {
+                const balance = a.token_info?.balance || 0
+                return balance > 0
+            })
+
+            const balanceTime = new Date().toISOString().substring(11, 23)
+            console.log(`[${balanceTime}] Filtered to ${assetsWithBalance.length} assets with balance (from ${allAssetsCombined.length} total)`)
+
+            if (assetsWithBalance.length === 0) return []
+
+            // 2. Fetch Detailed Info (Prices) via Batch - ONLY for assets with balance
             // Helius returns the *Account Address* for native SOL in getAssetsByOwner, but getAssetBatch needs the *Mint Address* to return price info.
             // We strip out the minimal info and get full info which includes price_info
-            const assetIds = allAssetsCombined.map(a => {
+            const assetIds = assetsWithBalance.map(a => {
                 // Map SOL (wallet ID) to SOL Mint for price lookup
                 if (a.id === publicKey.toBase58() || a.content?.metadata?.symbol === 'SOL') {
                     return SOL_MINT;
@@ -100,7 +114,8 @@ export function useWalletAssets(publicKey: PublicKey | null) {
             });
 
             const detailedAssets = await fetchAssetBatch(assetIds)
-            console.log('Fetched detailed assets count:', detailedAssets.length)
+            const detailTime = new Date().toISOString().substring(11, 23)
+            console.log(`[${detailTime}] Fetched detailed assets count:`, detailedAssets.length)
 
             // 3. Create a Price Map from detailed assets
             // Map both the mint address and the original request ID to handle SOL special case
@@ -127,9 +142,9 @@ export function useWalletAssets(publicKey: PublicKey | null) {
             console.log(`Price Map keys: ${Object.keys(priceMap).length}`);
             console.log(`Price Map has SOL mint (${SOL_MINT}):`, priceMap[SOL_MINT] !== undefined);
 
-            // 4. Map to Portfolio Asset Structure using Basic Assets (preserves Balance)
+            // 4. Map to Portfolio Asset Structure using Filtered Assets (only those with balance)
             try {
-                const mappedAssets = allAssetsCombined.map(asset => {
+                const mappedAssets = assetsWithBalance.map(asset => {
                     // Safe access with optional chaining and fallbacks
                     const tokenInfo = asset?.token_info || {};
                     const content = asset?.content || {};

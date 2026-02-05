@@ -34,7 +34,8 @@ export async function loadPreviousSnapshot(): Promise<PortfolioSnapshot | null> 
         const stored = await AsyncStorage.getItem(PORTFOLIO_SNAPSHOT_KEY)
         if (stored) {
             const snapshot = JSON.parse(stored) as PortfolioSnapshot
-            console.log('Previous snapshot loaded:', Object.keys(snapshot.assets).length, 'assets')
+            const now = new Date().toISOString().substring(11, 23)
+            console.log(`[${now}] Previous snapshot loaded:`, Object.keys(snapshot.assets).length, 'assets')
             return snapshot
         }
         console.log('No previous snapshot found')
