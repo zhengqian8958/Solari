@@ -73,26 +73,26 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     // Load data from AsyncStorage on mount
     useEffect(() => {
         loadAllData()
+        // Load snapshot in background (non-blocking)
+        loadSnapshotAsync()
     }, [])
 
     // Regenerate portfolio when data changes
     useEffect(() => {
-        if (!isLoadingStorage) {
+        // Wait for BOTH storage load AND assets to be ready
+        if (!isLoadingStorage && !isAssetsLoading) {
             regeneratePortfolio()
         }
-    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, realAssets, previousSnapshot])
+    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, isAssetsLoading, realAssets, previousSnapshot])
 
     const loadAllData = async () => {
         try {
-            const [storedActive, storedRemoved, storedCustom, snapshot] = await Promise.all([
+            // Load only CRITICAL data that's needed for display
+            const [storedActive, storedRemoved, storedCustom] = await Promise.all([
                 AsyncStorage.getItem(ACTIVE_INVESTMENT_TYPES_KEY),
                 AsyncStorage.getItem(REMOVED_ASSETS_KEY),
                 AsyncStorage.getItem(CUSTOM_ASSETS_KEY),
-                loadPreviousSnapshot(),
             ])
-
-            // Load previous snapshot for change calculation
-            setPreviousSnapshot(snapshot)
 
             // Load active investment types
             if (storedActive) {
@@ -119,6 +119,16 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             setActiveInvestmentTypeIds(DEFAULT_ACTIVE_INVESTMENT_TYPE_IDS)
         } finally {
             setIsLoadingStorage(false)
+        }
+    }
+
+    // Load snapshot asynchronously in background (non-blocking)
+    const loadSnapshotAsync = async () => {
+        try {
+            const snapshot = await loadPreviousSnapshot()
+            setPreviousSnapshot(snapshot)
+        } catch (error) {
+            console.error('Error loading previous snapshot:', error)
         }
     }
 
