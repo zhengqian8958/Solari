@@ -66,7 +66,7 @@ export default function PortfolioIndexScreen() {
             <View style={styles.container}>
                 <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
                     <PortfolioHeader
-                        title="My Vault ✨"
+                        title="My Vault"
                         onMenuPress={() => setShowSettingsDrawer(true)}
                         onWalletPress={handleWalletPress}
                     />
@@ -92,7 +92,7 @@ export default function PortfolioIndexScreen() {
         <View style={styles.container}>
             <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
                 <PortfolioHeader
-                    title="My Vault ✨"
+                    title="My Vault"
                     onMenuPress={() => setShowSettingsDrawer(true)}
                     onWalletPress={handleWalletPress}
                 />

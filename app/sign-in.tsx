@@ -26,13 +26,6 @@ export default function SignIn() {
           <Text style={styles.appName}>{AppConfig.name}</Text>
           <Text style={styles.slogan}>{AppConfig.slogan}</Text>
 
-          {/* Decorative sparkles */}
-          <View style={[styles.sparkle, styles.sparkle1]}>
-            <Text style={styles.sparkleText}>✨</Text>
-          </View>
-          <View style={[styles.sparkle, styles.sparkle2]}>
-            <Text style={styles.sparkleText}>⭐</Text>
-          </View>
         </View>
 
         {/* Middle Section - Mascot */}
