@@ -22,6 +22,7 @@ import {
 // AsyncStorage keys
 const REMOVED_ASSETS_KEY = '@removed_assets'
 const CUSTOM_ASSETS_KEY = '@custom_assets'
+const LATEST_PORTFOLIO_KEY = '@latest_portfolio'
 
 interface PortfolioContextType {
     portfolio: Portfolio
@@ -60,8 +61,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     const { data: realAssets, isLoading: isAssetsLoading, refetch: refetchAssets } = useWalletAssets(publicKey)
 
-    const now = new Date().toISOString().substring(11, 23)
-    console.log(`[${now}] PortfolioStore Render: PK=${publicKey?.toBase58().substring(0, 6)}.., realAssets=${realAssets?.length}, loading=${isAssetsLoading}`)
+    console.log(`PortfolioStore Render: PK=${publicKey?.toBase58().substring(0, 6)}.., realAssets=${realAssets?.length}, loading=${isAssetsLoading}`)
 
     const [portfolio, setPortfolio] = useState<Portfolio>({
         totalValue: 0,
@@ -84,8 +84,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         // Critical: Only regenerate when we have ACTUAL DATA ready
         // Don't regenerate on empty/null states
         if (publicKey && realAssets && realAssets.length > 0) {
-            const now = new Date().toISOString().substring(11, 23)
-            console.log(`[${now}] Triggering portfolio regeneration`)
+            console.log('Triggering portfolio regeneration')
             regeneratePortfolio()
         }
     }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, isLoadingSnapshot, isAssetsLoading, realAssets, previousSnapshot, publicKey])
@@ -93,13 +92,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     const loadAllData = async () => {
         try {
             // Load only CRITICAL data that's needed for display
-            const [storedActive, storedRemoved, storedCustom] = await Promise.all([
+            // Also load cached portfolio for Optimistic UI
+            const [storedActive, storedRemoved, storedCustom, storedPortfolio] = await Promise.all([
                 AsyncStorage.getItem(ACTIVE_INVESTMENT_TYPES_KEY),
                 AsyncStorage.getItem(REMOVED_ASSETS_KEY),
                 AsyncStorage.getItem(CUSTOM_ASSETS_KEY),
+                AsyncStorage.getItem(LATEST_PORTFOLIO_KEY),
             ])
 
-            // Load active investment types
+            // Load properties
             if (storedActive) {
                 setActiveInvestmentTypeIds(JSON.parse(storedActive))
             } else {
@@ -110,15 +111,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 )
             }
 
-            // Load removed assets
-            if (storedRemoved) {
-                setRemovedAssets(JSON.parse(storedRemoved))
+            if (storedRemoved) setRemovedAssets(JSON.parse(storedRemoved))
+            if (storedCustom) setCustomAssets(JSON.parse(storedCustom))
+
+            // OPTIMISTIC UI: Load cached portfolio immediately
+            if (storedPortfolio) {
+                console.log('Loaded cached portfolio for immediate display')
+                setPortfolio(JSON.parse(storedPortfolio))
             }
 
-            // Load custom assets
-            if (storedCustom) {
-                setCustomAssets(JSON.parse(storedCustom))
-            }
         } catch (error) {
             console.error('Error loading portfolio data:', error)
             setActiveInvestmentTypeIds(DEFAULT_ACTIVE_INVESTMENT_TYPE_IDS)
@@ -149,8 +150,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
         // Initialize with real assets
         if (realAssets) {
-            const now = new Date().toISOString().substring(11, 23)
-            console.log(`[${now}] PortfolioStore: processing realAssets:`, realAssets.length);
+            console.log('PortfolioStore: processing realAssets:', realAssets.length);
             realAssets.forEach(walletAsset => {
                 const categoryId = walletAsset.categoryId;
                 if (!assetsByCategory[categoryId]) {
@@ -189,8 +189,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 console.log('PortfolioStore: crypto assets count:', assetsByCategory['crypto'].length);
             }
         } else {
-            const now = new Date().toISOString().substring(11, 23)
-            console.log(`[${now}] PortfolioStore: realAssets is null/undefined`);
+            console.log('PortfolioStore: realAssets is null/undefined');
         }
 
         // 2. Mix with Custom Assets & Filter Removed
@@ -267,14 +266,19 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             percentage: portfolioTotalValue > 0 ? (t.totalValue / portfolioTotalValue) * 100 : 0
         }));
 
-        setPortfolio({
+        const newPortfolio = {
             totalValue: portfolioTotalValue,
             totalChange: portfolioTotalChange,
             totalChangePercentage: portfolioChangePercentage,
             investmentTypes: finalInvestmentTypes,
-        })
+        }
 
-        // 5. Save snapshot for next session (only if we have assets to track)
+        setPortfolio(newPortfolio)
+
+        // 5. CACHE PORTFOLIO for next session (Optimistic UI)
+        await AsyncStorage.setItem(LATEST_PORTFOLIO_KEY, JSON.stringify(newPortfolio))
+
+        // 6. Save snapshot for next session (only if we have assets to track)
         if (Object.keys(currentAssetValues).length > 0) {
             await savePortfolioSnapshot(currentAssetValues)
         }
@@ -382,6 +386,17 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         return investmentType?.assets || []
     }
 
+    // Determine if we should show loading state
+    // If we have portfolio data (totalValue > 0 or investmentTypes > 0), we assume we have cached data and show it
+    // isLoading only stays true if we have INITIAL empty state AND we are loading critical things
+    const hasPortfolioData = portfolio.totalValue > 0 || portfolio.investmentTypes.length > 0;
+
+    // We are loading if:
+    // 1. Storage is loading (critical for removed assets/custom assets)
+    // 2. We don't have ANY portfolio data AND (we don't have publicKey OR assets are loading)
+    // If we have portfolio data (cached), we are technically NOT "loading" in the UI sense (we show stale data)
+    const shouldShowLoading = isLoadingStorage || (!hasPortfolioData && (!publicKey || isAssetsLoading));
+
     return (
         <PortfolioContext.Provider
             value={{
@@ -395,7 +410,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 getAssetsByInvestmentType,
                 removeAsset,
                 addAsset,
-                isLoading: !publicKey || isAssetsLoading || !realAssets,
+                isLoading: shouldShowLoading,
             }}
         >
             {children}
