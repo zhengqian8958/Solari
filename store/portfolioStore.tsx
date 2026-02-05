@@ -10,6 +10,13 @@ import {
     DEFAULT_ACTIVE_INVESTMENT_TYPE_IDS,
     ACTIVE_INVESTMENT_TYPES_KEY,
 } from '../constants/systemInvestmentTypes'
+import {
+    savePortfolioSnapshot,
+    loadPreviousSnapshot,
+    calculateChange,
+    getSnapshotValues,
+    type PortfolioSnapshot
+} from '../utils/portfolioSnapshot'
 // import { generateMockPortfolio } from '../data/mockPortfolioData' // No longer needed for main flow, but kept if we want fallback? No, we want real data.
 
 // AsyncStorage keys
@@ -39,6 +46,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     const [selectedInvestmentTypeId, setSelectedInvestmentTypeId] = useState<string | null>(null)
     const [removedAssets, setRemovedAssets] = useState<Record<string, string[]>>({}) // investmentTypeId -> assetIds[]
     const [customAssets, setCustomAssets] = useState<Record<string, Asset[]>>({}) // investmentTypeId -> Asset[]
+    const [previousSnapshot, setPreviousSnapshot] = useState<PortfolioSnapshot | null>(null)
 
     // Get Real Assets
     const { accounts } = useMobileWallet()
@@ -72,15 +80,19 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         if (!isLoadingStorage) {
             regeneratePortfolio()
         }
-    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, realAssets])
+    }, [activeInvestmentTypeIds, removedAssets, customAssets, isLoadingStorage, realAssets, previousSnapshot])
 
     const loadAllData = async () => {
         try {
-            const [storedActive, storedRemoved, storedCustom] = await Promise.all([
+            const [storedActive, storedRemoved, storedCustom, snapshot] = await Promise.all([
                 AsyncStorage.getItem(ACTIVE_INVESTMENT_TYPES_KEY),
                 AsyncStorage.getItem(REMOVED_ASSETS_KEY),
                 AsyncStorage.getItem(CUSTOM_ASSETS_KEY),
+                loadPreviousSnapshot(),
             ])
+
+            // Load previous snapshot for change calculation
+            setPreviousSnapshot(snapshot)
 
             // Load active investment types
             if (storedActive) {
@@ -110,9 +122,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const regeneratePortfolio = () => {
+    const regeneratePortfolio = async () => {
+        // Get previous values for change calculation
+        const prevValues = getSnapshotValues(previousSnapshot)
+
         // 1. Group Real Assets by Category
         const assetsByCategory: Record<string, Asset[]> = {};
+        const currentAssetValues: Record<string, number> = {} // Track current values for snapshot
 
         // Initialize with real assets
         if (realAssets) {
@@ -123,6 +139,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     assetsByCategory[categoryId] = [];
                 }
 
+                // Calculate real change based on previous snapshot
+                const { change, changePercentage } = calculateChange(
+                    walletAsset.value,
+                    prevValues[walletAsset.id]
+                )
+
+                // Track current value for new snapshot
+                currentAssetValues[walletAsset.id] = walletAsset.value
+
                 // Convert WalletAsset to Asset
                 const asset: Asset = {
                     id: walletAsset.id,
@@ -130,12 +155,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     symbol: walletAsset.symbol,
                     value: walletAsset.value,
                     percentage: 0, // Recalculated later
-                    change: walletAsset.change,
-                    changePercentage: walletAsset.changePercentage,
+                    change, // Real change from snapshot
+                    changePercentage, // Real percentage from snapshot
                     investmentTypeId: categoryId,
                     isCustom: false,
                     icon: '',
                     amount: walletAsset.uiAmount,
+                    previousValue: prevValues[walletAsset.id],
                 } as any;
 
                 assetsByCategory[categoryId].push(asset);
@@ -149,17 +175,6 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Mix with Custom Assets & Filter Removed
-        // We iterate over *Active* Investment Types to build the final list
-        // However, if we identify new categories from the Wallet that aren't in Active, 
-        // should we auto-add them? 
-        // For now, let's respect `activeInvestmentTypeIds` but maybe we should ensure we don't hide real money.
-        // Let's auto-add categories found in wallet to available list, or just show everything found.
-        // Current requirement: "Use real data".
-
-        // Let's iterate over ALL system types + any dynamic ones?
-        // For simplicity, let's stick to the structure: We iterate over activeInvestmentTypeIds.
-        // If the user has 'commodities' enabled, we look for commodities assets.
-
         const calculatedInvestmentTypes = activeInvestmentTypeIds.map(typeId => {
             const systemType = SYSTEM_INVESTMENT_TYPES.find(t => t.id === typeId);
 
@@ -167,7 +182,23 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             const realAssetsForType = assetsByCategory[typeId] || [];
 
             // Get custom assets
-            const customAssetsForType = customAssets[typeId] || [];
+            const customAssetsForType = (customAssets[typeId] || []).map(customAsset => {
+                // Calculate change for custom assets too
+                const { change, changePercentage } = calculateChange(
+                    customAsset.value,
+                    prevValues[customAsset.id]
+                )
+
+                // Track current value for snapshot
+                currentAssetValues[customAsset.id] = customAsset.value
+
+                return {
+                    ...customAsset,
+                    change,
+                    changePercentage,
+                    previousValue: prevValues[customAsset.id],
+                }
+            });
 
             // Get removed IDs
             const removedIds = removedAssets[typeId] || [];
@@ -178,13 +209,12 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             // Filter removed
             allAssets = allAssets.filter(a => !removedIds.includes(a.id));
 
-            // Filter zero value if desired, but maybe show 0 balance if it's a custom tracked asset?
-            // Real assets are already filtered > 0 in hook usually, unless we changed that.
-
-            // Calculate totals for this Type
+            // Calculate totals for this Type (aggregate from assets)
             const totalValue = allAssets.reduce((sum, a) => sum + a.value, 0);
-            const totalChange = allAssets.reduce((sum, a) => sum + a.change, 0); // Mock change for now
-            const changePercentage = totalValue > 0 ? (totalChange / (totalValue - totalChange)) * 100 : 0;
+            const totalChange = allAssets.reduce((sum, a) => sum + a.change, 0);
+            const changePercentage = totalValue > 0 && (totalValue - totalChange) > 0
+                ? (totalChange / (totalValue - totalChange)) * 100
+                : 0;
 
             // Calculate percentages within the type
             const assetsWithPercentages = allAssets.map(asset => ({
@@ -195,8 +225,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             return {
                 id: typeId,
                 name: systemType?.name || typeId,
-                icon: systemType?.icon || 'help-circle', // Fallback icon
-                color: systemType?.color || '#000000', // Fallback color
+                icon: systemType?.icon || 'help-circle',
+                color: systemType?.color || '#000000',
                 totalValue,
                 change: totalChange,
                 changePercentage,
@@ -205,16 +235,14 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             };
         });
 
-        // 3. Filter out types with 0 value? 
-        // Maybe we want to keep them if they are explicitly active, to show "Empty".
-        // The existing logic kept them.
-
-        // 4. Calculate Portfolio Totals
+        // 3. Calculate Portfolio Totals
         const portfolioTotalValue = calculatedInvestmentTypes.reduce((sum, t) => sum + t.totalValue, 0);
         const portfolioTotalChange = calculatedInvestmentTypes.reduce((sum, t) => sum + t.change, 0);
-        const portfolioChangePercentage = portfolioTotalValue > 0 ? (portfolioTotalChange / (portfolioTotalValue - portfolioTotalChange)) * 100 : 0;
+        const portfolioChangePercentage = portfolioTotalValue > 0 && (portfolioTotalValue - portfolioTotalChange) > 0
+            ? (portfolioTotalChange / (portfolioTotalValue - portfolioTotalChange)) * 100
+            : 0;
 
-        // 5. Calculate Type Percentages
+        // 4. Calculate Type Percentages
         const finalInvestmentTypes = calculatedInvestmentTypes.map(t => ({
             ...t,
             percentage: portfolioTotalValue > 0 ? (t.totalValue / portfolioTotalValue) * 100 : 0
@@ -226,6 +254,11 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             totalChangePercentage: portfolioChangePercentage,
             investmentTypes: finalInvestmentTypes,
         })
+
+        // 5. Save snapshot for next session (only if we have assets to track)
+        if (Object.keys(currentAssetValues).length > 0) {
+            await savePortfolioSnapshot(currentAssetValues)
+        }
     }
 
     const addInvestmentType = async (id: string) => {

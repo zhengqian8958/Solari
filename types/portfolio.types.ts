@@ -14,6 +14,7 @@ export interface Asset {
   icon?: string
   isCustom?: boolean // Flag for user-added assets
   createdAt?: number // Timestamp for custom assets
+  previousValue?: number // Previous value for change calculation
 }
 
 export interface InvestmentType {
