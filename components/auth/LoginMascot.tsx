@@ -1,43 +1,72 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
+import Svg, { Circle } from 'react-native-svg'
 import { PORTFOLIO_COLORS } from '@/constants/portfolioTheme'
 
 /**
- * Cute anime-style mascot for the login screen
- * Features a simple character with colorful circular background
+ * Peeking anime-style mascot for the login screen
+ * Matches the app icon design with chart ring and cute character
  */
 export function LoginMascot() {
     return (
         <View style={styles.container}>
-            {/* Colorful circular background */}
-            <View style={styles.circleContainer}>
-                {/* Top-left purple blob */}
-                <View style={[styles.colorBlob, styles.purpleBlob]} />
-                {/* Top-right cyan blob */}
-                <View style={[styles.colorBlob, styles.cyanBlob]} />
-                {/* Bottom-left yellow blob */}
-                <View style={[styles.colorBlob, styles.yellowBlob]} />
-                {/* Bottom-right pink blob */}
-                <View style={[styles.colorBlob, styles.pinkBlob]} />
+            <View style={styles.iconCanvas}>
+                {/* Colorful Pie Chart Ring */}
+                <View style={styles.chartHalo}>
+                    <Svg width="200" height="200" viewBox="0 0 100 100" style={{ transform: [{ rotate: '-45deg' }] }}>
+                        {/* Black background ring */}
+                        <Circle cx="50" cy="50" r="38" stroke="#000" strokeWidth="16" fill="none" />
+                        {/* Cyan segment */}
+                        <Circle cx="50" cy="50" r="38" stroke={PORTFOLIO_COLORS['anime-mint']} strokeWidth="12" strokeDasharray="80 238.7" strokeLinecap="butt" fill="none" />
+                        {/* Pink segment */}
+                        <Circle cx="50" cy="50" r="38" stroke={PORTFOLIO_COLORS['anime-pink']} strokeWidth="12" strokeDasharray="60 238.7" strokeDashoffset="-80" strokeLinecap="butt" fill="none" />
+                        {/* Yellow segment */}
+                        <Circle cx="50" cy="50" r="38" stroke={PORTFOLIO_COLORS['anime-yellow']} strokeWidth="12" strokeDasharray="50 238.7" strokeDashoffset="-140" strokeLinecap="butt" fill="none" />
+                        {/* Purple segment */}
+                        <Circle cx="50" cy="50" r="38" stroke={PORTFOLIO_COLORS['anime-purple']} strokeWidth="12" strokeDasharray="48.7 238.7" strokeDashoffset="-190" strokeLinecap="butt" fill="none" />
+                    </Svg>
+                </View>
 
-                {/* Character container */}
-                <View style={styles.characterContainer}>
-                    {/* Character body */}
-                    <View style={styles.characterBody}>
-                        {/* Eyes */}
-                        <View style={styles.eyesContainer}>
-                            <View style={styles.eye} />
-                            <View style={styles.eye} />
+                {/* Peeking Mascot */}
+                <View style={styles.mascotContainer}>
+                    {/* Character Head */}
+                    <View style={styles.characterHead}>
+                        {/* Top cyan highlight */}
+                        <View style={styles.headHighlight} />
+
+                        {/* Face features */}
+                        <View style={styles.faceContainer}>
+                            {/* Eyes */}
+                            <View style={styles.eyesContainer}>
+                                <View style={styles.eye} />
+                                <View style={styles.eye} />
+                            </View>
+                            {/* Mouth */}
+                            <View style={styles.mouth} />
                         </View>
-                        {/* Smile */}
-                        <View style={styles.smile} />
+
+                        {/* Left ear */}
+                        <View style={[styles.ear, styles.leftEar]} />
+                        {/* Right ear */}
+                        <View style={[styles.ear, styles.rightEar]} />
+
+                        {/* Blush marks */}
+                        <View style={[styles.blush, styles.leftBlush]} />
+                        <View style={[styles.blush, styles.rightBlush]} />
                     </View>
-                    {/* Character legs */}
-                    <View style={styles.legsContainer}>
-                        <View style={styles.leg} />
-                        <View style={styles.leg} />
+
+                    {/* Feet peeking at bottom */}
+                    <View style={styles.feetContainer}>
+                        <View style={styles.foot} />
+                        <View style={styles.foot} />
                     </View>
                 </View>
+
+                {/* Floor line */}
+                <View style={styles.floorLine} />
+
+                {/* Wall panel below */}
+                <View style={styles.wallBottom} />
             </View>
         </View>
     )
@@ -49,95 +78,142 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 40,
     },
-    circleContainer: {
+    iconCanvas: {
         width: 200,
         height: 200,
-        borderRadius: 100,
-        backgroundColor: '#f0f0f0',
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        overflow: 'visible',
+    },
+    chartHalo: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    mascotContainer: {
+        position: 'relative',
+        zIndex: 30,
+        alignItems: 'center',
+        transform: [{ translateY: -30 }, { rotate: '-8deg' }],
+    },
+    characterHead: {
+        width: 110,
+        height: 110,
+        backgroundColor: '#fff',
+        borderRadius: 24,
         borderWidth: 3,
         borderColor: '#000',
         position: 'relative',
         alignItems: 'center',
-        justifyContent: 'center',
+        paddingTop: 20,
         overflow: 'hidden',
-    },
-    colorBlob: {
-        position: 'absolute',
-        borderRadius: 100,
-    },
-    purpleBlob: {
-        width: 100,
-        height: 100,
-        backgroundColor: PORTFOLIO_COLORS['anime-purple'],
-        top: -20,
-        left: -10,
-    },
-    cyanBlob: {
-        width: 90,
-        height: 90,
-        backgroundColor: PORTFOLIO_COLORS['anime-mint'],
-        top: -15,
-        right: -15,
-    },
-    yellowBlob: {
-        width: 80,
-        height: 80,
-        backgroundColor: PORTFOLIO_COLORS['anime-yellow'],
-        bottom: 20,
-        left: -10,
-    },
-    pinkBlob: {
-        width: 95,
-        height: 95,
-        backgroundColor: PORTFOLIO_COLORS['anime-pink'],
-        bottom: -10,
-        right: -20,
-    },
-    characterContainer: {
-        alignItems: 'center',
-        zIndex: 10,
-    },
-    characterBody: {
-        width: 90,
-        height: 90,
-        backgroundColor: '#e0f7ff',
-        borderRadius: 20,
-        borderWidth: 3,
-        borderColor: '#000',
-        alignItems: 'center',
-        justifyContent: 'center',
+        // Cel-shaded shadow
         shadowColor: '#000',
-        shadowOffset: { width: 4, height: 4 },
+        shadowOffset: { width: 6, height: 6 },
         shadowOpacity: 1,
         shadowRadius: 0,
         elevation: 0,
     },
+    headHighlight: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '50%',
+        backgroundColor: 'rgba(129, 230, 217, 0.05)', // anime-mint with low opacity
+    },
+    faceContainer: {
+        alignItems: 'center',
+        gap: 8,
+        zIndex: 10,
+    },
     eyesContainer: {
         flexDirection: 'row',
-        gap: 20,
+        gap: 18,
         marginTop: 10,
     },
     eye: {
-        width: 8,
-        height: 8,
+        width: 11,
+        height: 11,
         backgroundColor: '#000',
-        borderRadius: 4,
+        borderRadius: 11,
     },
-    smile: {
-        width: 30,
-        height: 3,
+    mouth: {
+        width: 22,
+        height: 4,
         backgroundColor: '#000',
-        marginTop: 12,
+        borderRadius: 2,
+        marginTop: 4,
     },
-    legsContainer: {
-        flexDirection: 'row',
-        gap: 15,
-        marginTop: -3,
+    ear: {
+        position: 'absolute',
+        width: 22,
+        height: 22,
+        backgroundColor: PORTFOLIO_COLORS['anime-pink'],
+        borderWidth: 3,
+        borderColor: '#000',
+        borderRadius: 8,
     },
-    leg: {
+    leftEar: {
+        top: -3,
+        left: -3,
+        transform: [{ rotate: '-15deg' }],
+    },
+    rightEar: {
+        top: -3,
+        right: -3,
+        transform: [{ rotate: '15deg' }],
+    },
+    blush: {
+        position: 'absolute',
         width: 12,
-        height: 18,
+        height: 4,
+        backgroundColor: 'rgba(255, 133, 162, 0.4)', // anime-pink with opacity
+        borderRadius: 2,
+    },
+    leftBlush: {
+        top: 54,
+        left: 10,
+    },
+    rightBlush: {
+        top: 54,
+        right: 10,
+    },
+    feetContainer: {
+        flexDirection: 'row',
+        gap: 55,
+        position: 'absolute',
+        bottom: -12,
+        zIndex: 50,
+    },
+    foot: {
+        width: 25,
+        height: 25,
+        backgroundColor: '#fff',
+        borderWidth: 3,
+        borderColor: '#000',
+        borderRadius: 25,
+    },
+    floorLine: {
+        position: 'absolute',
+        bottom: 60,
+        left: 0,
+        right: 0,
+        height: 4,
         backgroundColor: '#000',
-        borderRadius: 6,
+        zIndex: 45,
+    },
+    wallBottom: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 60,
+        backgroundColor: '#ecc8ed', // pink color matching login background gradient
+        zIndex: 40,
     },
 })
