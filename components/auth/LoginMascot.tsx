@@ -13,7 +13,7 @@ export function LoginMascot() {
             <View style={styles.iconCanvas}>
                 {/* Colorful Pie Chart Ring */}
                 <View style={styles.chartHalo}>
-                    <Svg width="200" height="200" viewBox="0 0 100 100" style={{ transform: [{ rotate: '-45deg' }] }}>
+                    <Svg width="220" height="220" viewBox="0 0 100 100" style={{ transform: [{ rotate: '-45deg' }] }}>
                         {/* Black background ring */}
                         <Circle cx="50" cy="50" r="38" stroke="#000" strokeWidth="16" fill="none" />
                         {/* Cyan segment */}
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
         paddingVertical: 40,
     },
     iconCanvas: {
-        width: 200,
-        height: 200,
+        width: 220,
+        height: 220,
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'flex-end',
@@ -98,11 +98,11 @@ const styles = StyleSheet.create({
         position: 'relative',
         zIndex: 30,
         alignItems: 'center',
-        transform: [{ translateY: -30 }, { rotate: '-8deg' }],
+        transform: [{ translateY: -36 }, { rotate: '-8deg' }],
     },
     characterHead: {
-        width: 110,
-        height: 110,
+        width: 115,
+        height: 115,
         backgroundColor: '#fff',
         borderRadius: 24,
         borderWidth: 3,
@@ -137,10 +137,10 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     eye: {
-        width: 11,
-        height: 11,
+        width: 12,
+        height: 12,
         backgroundColor: '#000',
-        borderRadius: 11,
+        borderRadius: 12,
     },
     mouth: {
         width: 22,
