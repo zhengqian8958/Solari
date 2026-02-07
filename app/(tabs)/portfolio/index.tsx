@@ -12,6 +12,7 @@ import { AddInvestmentTypeModal } from '../../../components/portfolio/AddInvestm
 import { SettingsDrawer } from '../../../components/portfolio/SettingsDrawer'
 import { SwipeableCard } from '../../../components/portfolio/SwipeableCard'
 import { EmptyHubState } from '../../../components/portfolio/EmptyHubState'
+import { WalletLoadingOverlay } from '../../../components/portfolio/WalletLoadingOverlay'
 import { INVESTMENT_TYPE_COLORS } from '../../../constants/portfolioTheme'
 
 export default function PortfolioIndexScreen() {
@@ -22,6 +23,7 @@ export default function PortfolioIndexScreen() {
         addInvestmentType,
         removeInvestmentType,
         activeInvestmentTypeIds,
+        isLoading,
     } = usePortfolio()
 
     const [showAddTypeModal, setShowAddTypeModal] = useState(false)
@@ -58,6 +60,11 @@ export default function PortfolioIndexScreen() {
     const handleAddInvestmentType = async (typeId: string) => {
         await addInvestmentType(typeId)
         setShowAddTypeModal(false)
+    }
+
+    // Show loading overlay for first-time users (no cached data)
+    if (isLoading) {
+        return <WalletLoadingOverlay />
     }
 
     // Show empty state if no investment types
