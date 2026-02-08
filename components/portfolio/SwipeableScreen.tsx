@@ -22,6 +22,8 @@ export function SwipeableScreen({
     canSwipeRight = true,
 }: SwipeableScreenProps) {
     const panGesture = Gesture.Pan()
+        .activeOffsetX([-10, 10]) // Only activate after 10px horizontal movement
+        .failOffsetY([-10, 10]) // Fail if there's 10px vertical movement (let ScrollView handle it)
         .onEnd((event) => {
             const { translationX, velocityX } = event
 
