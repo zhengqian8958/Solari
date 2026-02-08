@@ -35,7 +35,9 @@ interface PortfolioContextType {
     getAssetsByInvestmentType: (investmentTypeId: string) => Asset[]
     removeAsset: (investmentTypeId: string, assetId: string) => Promise<void>
     addAsset: (investmentTypeId: string, name: string, amount: number) => Promise<void>
+    refreshPortfolio: () => Promise<void>
     isLoading: boolean
+    isRefreshing: boolean
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined)
@@ -71,6 +73,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     })
     const [isLoadingStorage, setIsLoadingStorage] = useState(true)
     const [isLoadingSnapshot, setIsLoadingSnapshot] = useState(true)
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
     // Load data from AsyncStorage on mount
     useEffect(() => {
@@ -371,10 +374,21 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const refreshPortfolio = async () => {
+        setIsRefreshing(true)
+        try {
+            await refetchAssets()
+            // Wait a moment for the refetch to complete and trigger regeneration
+            await new Promise(resolve => setTimeout(resolve, 500))
+        } catch (error) {
+            console.error('Error refreshing portfolio:', error)
+        } finally {
+            setIsRefreshing(false)
+        }
+    }
+
     const setSelectedInvestmentType = (id: string | null) => {
         setSelectedInvestmentTypeId(id)
-        // Trigger refetch to get fresh prices when switching views
-        refetchAssets()
     }
 
     const getInvestmentType = (id: string): InvestmentType | undefined => {
@@ -410,7 +424,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 getAssetsByInvestmentType,
                 removeAsset,
                 addAsset,
+                refreshPortfolio,
                 isLoading: shouldShowLoading,
+                isRefreshing,
             }}
         >
             {children}

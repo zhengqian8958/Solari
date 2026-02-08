@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { usePortfolio } from '../../../store/portfolioStore'
@@ -25,6 +25,8 @@ export default function PortfolioIndexScreen() {
         removeInvestmentType,
         activeInvestmentTypeIds,
         isLoading,
+        refreshPortfolio,
+        isRefreshing,
     } = usePortfolio()
 
     const [showAddTypeModal, setShowAddTypeModal] = useState(false)
@@ -120,7 +122,18 @@ export default function PortfolioIndexScreen() {
                         onWalletPress={handleWalletPress}
                     />
 
-                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={refreshPortfolio}
+                                tintColor="#000"
+                                colors={["#000"]}
+                            />
+                        }
+                    >
                         {/* Portfolio Summary */}
                         <PortfolioSummary
                             totalValue={portfolio.totalValue}

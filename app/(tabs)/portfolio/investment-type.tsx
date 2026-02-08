@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, RefreshControl } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -29,6 +29,8 @@ export default function InvestmentTypeScreen() {
         removeAsset,
         addAsset,
         activeInvestmentTypeIds,
+        refreshPortfolio,
+        isRefreshing,
     } = usePortfolio()
 
     const [showAddTypeModal, setShowAddTypeModal] = useState(false)
@@ -124,7 +126,18 @@ export default function InvestmentTypeScreen() {
                         onWalletPress={handleWalletPress}
                     />
 
-                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isRefreshing}
+                                onRefresh={refreshPortfolio}
+                                tintColor="#000"
+                                colors={["#000"]}
+                            />
+                        }
+                    >
                         {/* Portfolio Summary */}
                         <PortfolioSummary
                             totalValue={investmentType.totalValue}
