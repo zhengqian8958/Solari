@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { View, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import type { InvestmentType } from '../../types/portfolio.types'
@@ -22,7 +22,11 @@ const ICON_SOURCES: Record<string, any> = {
     'account_balance_wallet': require('../../assets/icons/cash_color.png'),
 }
 
+const TAB_WIDTH = 80 // Approximate width of each tab including padding
+
 export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }: BottomNavProps) {
+    const scrollViewRef = useRef<ScrollView>(null)
+
     const allTabs = [
         { id: null, name: 'Hub', icon: 'hub', color: 'anime-pink' },
         ...investmentTypes.map((type) => ({
@@ -33,10 +37,21 @@ export function BottomNav({ investmentTypes, activeTab, onTabChange, onAddType }
         })),
     ]
 
+    // Auto-scroll to active tab when it changes
+    useEffect(() => {
+        const activeIndex = allTabs.findIndex(tab => tab.id === activeTab)
+        if (activeIndex !== -1 && scrollViewRef.current) {
+            // Calculate scroll position to center the active tab
+            const scrollX = Math.max(0, (activeIndex * TAB_WIDTH) - (TAB_WIDTH * 1.5))
+            scrollViewRef.current.scrollTo({ x: scrollX, animated: true })
+        }
+    }, [activeTab])
+
     return (
         <View style={styles.container}>
             <View style={styles.navContainer}>
                 <ScrollView
+                    ref={scrollViewRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}

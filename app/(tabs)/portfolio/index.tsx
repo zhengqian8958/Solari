@@ -13,6 +13,7 @@ import { SettingsDrawer } from '../../../components/portfolio/SettingsDrawer'
 import { SwipeableCard } from '../../../components/portfolio/SwipeableCard'
 import { EmptyHubState } from '../../../components/portfolio/EmptyHubState'
 import { WalletLoadingOverlay } from '../../../components/portfolio/WalletLoadingOverlay'
+import { SwipeableScreen } from '../../../components/portfolio/SwipeableScreen'
 import { INVESTMENT_TYPE_COLORS } from '../../../constants/portfolioTheme'
 
 export default function PortfolioIndexScreen() {
@@ -62,6 +63,17 @@ export default function PortfolioIndexScreen() {
         setShowAddTypeModal(false)
     }
 
+    const handleSwipeLeft = () => {
+        // Swipe left from hub navigates to the first investment type
+        if (activeInvestmentTypeIds.length > 0) {
+            const firstTypeId = portfolio.investmentTypes[0]?.id
+            if (firstTypeId) {
+                setSelectedInvestmentType(firstTypeId)
+                router.push('/(tabs)/portfolio/investment-type' as any)
+            }
+        }
+    }
+
     // Show loading overlay for first-time users (no cached data)
     if (isLoading) {
         return <WalletLoadingOverlay />
@@ -96,88 +108,93 @@ export default function PortfolioIndexScreen() {
     }))
 
     return (
-        <View style={styles.container}>
-            <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
-                <PortfolioHeader
-                    title="My Vault"
-                    onMenuPress={() => setShowSettingsDrawer(true)}
-                    onWalletPress={handleWalletPress}
-                />
-
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                    {/* Portfolio Summary */}
-                    <PortfolioSummary
-                        totalValue={portfolio.totalValue}
-                        change={portfolio.totalChange}
-                        changePercentage={portfolio.totalChangePercentage}
+        <SwipeableScreen
+            onSwipeLeft={handleSwipeLeft}
+            canSwipeRight={false}
+        >
+            <View style={styles.container}>
+                <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
+                    <PortfolioHeader
+                        title="My Vault"
+                        onMenuPress={() => setShowSettingsDrawer(true)}
+                        onWalletPress={handleWalletPress}
                     />
 
-                    {/* Pie Chart */}
-                    <View style={styles.pieChartSection}>
-                        <View style={styles.pieChartContainer}>
-                            <PieChart
-                                segments={pieSegments}
-                                size={300}
-                                onSegmentPress={handlePieSegmentPress}
-                                interactive
-                            />
-                            {/* Center label */}
-                            <View style={styles.centerLabel}>
-                                <Text style={styles.centerLabelSmall}>MASTERY</Text>
-                                <Text style={styles.centerLabelLarge}>100%</Text>
+                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                        {/* Portfolio Summary */}
+                        <PortfolioSummary
+                            totalValue={portfolio.totalValue}
+                            change={portfolio.totalChange}
+                            changePercentage={portfolio.totalChangePercentage}
+                        />
+
+                        {/* Pie Chart */}
+                        <View style={styles.pieChartSection}>
+                            <View style={styles.pieChartContainer}>
+                                <PieChart
+                                    segments={pieSegments}
+                                    size={300}
+                                    onSegmentPress={handlePieSegmentPress}
+                                    interactive
+                                />
+                                {/* Center label */}
+                                <View style={styles.centerLabel}>
+                                    <Text style={styles.centerLabelSmall}>MASTERY</Text>
+                                    <Text style={styles.centerLabelLarge}>100%</Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
 
-                    {/* Asset Squad Section */}
-                    <View style={styles.assetsSection}>
-                        <Text style={styles.sectionTitle}>Asset Squad</Text>
+                        {/* Asset Squad Section */}
+                        <View style={styles.assetsSection}>
+                            <Text style={styles.sectionTitle}>Asset Squad</Text>
 
-                        <View style={styles.assetsList}>
-                            {portfolio.investmentTypes.map((type, index) => (
-                                <SwipeableCard
-                                    key={type.id}
-                                    onDelete={() => handleDeleteInvestmentType(type.id)}
-                                    enabled
-                                >
-                                    <AssetCard
-                                        id={type.id}
-                                        name={type.name}
-                                        percentage={type.percentage}
-                                        value={type.totalValue}
-                                        change={type.change}
-                                        changePercentage={type.changePercentage}
-                                        icon={type.icon}
-                                        color={pieSegments[index]?.color || INVESTMENT_TYPE_COLORS[type.id]}
-                                        variant="clickable"
-                                        onPress={() => handleAssetCardPress(type.id)}
-                                    />
-                                </SwipeableCard>
-                            ))}
+                            <View style={styles.assetsList}>
+                                {portfolio.investmentTypes.map((type, index) => (
+                                    <SwipeableCard
+                                        key={type.id}
+                                        onDelete={() => handleDeleteInvestmentType(type.id)}
+                                        enabled
+                                    >
+                                        <AssetCard
+                                            id={type.id}
+                                            name={type.name}
+                                            percentage={type.percentage}
+                                            value={type.totalValue}
+                                            change={type.change}
+                                            changePercentage={type.changePercentage}
+                                            icon={type.icon}
+                                            color={pieSegments[index]?.color || INVESTMENT_TYPE_COLORS[type.id]}
+                                            variant="clickable"
+                                            onPress={() => handleAssetCardPress(type.id)}
+                                        />
+                                    </SwipeableCard>
+                                ))}
+                            </View>
                         </View>
-                    </View>
-                </ScrollView>
+                    </ScrollView>
 
-                <BottomNav
-                    investmentTypes={portfolio.investmentTypes}
-                    activeTab={null} // Hub is active
-                    onTabChange={handleTabChange}
-                    onAddType={() => setShowAddTypeModal(true)}
-                />
+                    <BottomNav
+                        investmentTypes={portfolio.investmentTypes}
+                        activeTab={null} // Hub is active
+                        onTabChange={handleTabChange}
+                        onAddType={() => setShowAddTypeModal(true)}
+                    />
 
-                <AddInvestmentTypeModal
-                    visible={showAddTypeModal}
-                    onClose={() => setShowAddTypeModal(false)}
-                    onSelectType={handleAddInvestmentType}
-                    existingTypes={activeInvestmentTypeIds}
-                />
+                    <AddInvestmentTypeModal
+                        visible={showAddTypeModal}
+                        onClose={() => setShowAddTypeModal(false)}
+                        onSelectType={handleAddInvestmentType}
+                        existingTypes={activeInvestmentTypeIds}
+                    />
 
-                <SettingsDrawer
-                    visible={showSettingsDrawer}
-                    onClose={() => setShowSettingsDrawer(false)}
-                />
-            </LinearGradient>
-        </View>
+                    <SettingsDrawer
+                        visible={showSettingsDrawer}
+                        onClose={() => setShowSettingsDrawer(false)}
+                    />
+                </LinearGradient>
+            </View>
+        </SwipeableScreen>
     )
 }
 

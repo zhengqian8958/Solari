@@ -15,6 +15,7 @@ import { SettingsDrawer } from '../../../components/portfolio/SettingsDrawer'
 import { SwipeableCard } from '../../../components/portfolio/SwipeableCard'
 import { AddAssetDialog } from '../../../components/portfolio/AddAssetDialog'
 import { EmptyInvestmentTypeState } from '../../../components/portfolio/EmptyInvestmentTypeState'
+import { SwipeableScreen } from '../../../components/portfolio/SwipeableScreen'
 import { getInvestmentTypeShades } from '../../../utils/colorUtils'
 
 export default function InvestmentTypeScreen() {
@@ -74,6 +75,29 @@ export default function InvestmentTypeScreen() {
         await addAsset(investmentType.id, name, amount)
     }
 
+    const handleSwipeLeft = () => {
+        // Swipe left navigates to next investment type
+        const currentIndex = portfolio.investmentTypes.findIndex(t => t.id === selectedInvestmentTypeId)
+        if (currentIndex !== -1 && currentIndex < portfolio.investmentTypes.length - 1) {
+            const nextType = portfolio.investmentTypes[currentIndex + 1]
+            setSelectedInvestmentType(nextType.id)
+        }
+    }
+
+    const handleSwipeRight = () => {
+        // Swipe right navigates to previous investment type or hub
+        const currentIndex = portfolio.investmentTypes.findIndex(t => t.id === selectedInvestmentTypeId)
+        if (currentIndex > 0) {
+            // Go to previous investment type
+            const prevType = portfolio.investmentTypes[currentIndex - 1]
+            setSelectedInvestmentType(prevType.id)
+        } else if (currentIndex === 0) {
+            // Go back to hub
+            setSelectedInvestmentType(null)
+            router.back()
+        }
+    }
+
     // Get color shades specific to this investment type
     const assetColors = getInvestmentTypeShades(investmentType.id, investmentType.assets.length || 6)
 
@@ -86,137 +110,144 @@ export default function InvestmentTypeScreen() {
     const hasAssets = investmentType.assets.length > 0
 
     return (
-        <View style={styles.container}>
-            <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
-                <PortfolioHeader
-                    title={`${investmentType.name} Portfolio`}
-                    onMenuPress={() => setShowSettingsDrawer(true)}
-                    onWalletPress={handleWalletPress}
-                />
-
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                    {/* Portfolio Summary */}
-                    <PortfolioSummary
-                        totalValue={investmentType.totalValue}
-                        change={investmentType.change}
-                        changePercentage={investmentType.changePercentage}
-                        percentage={investmentType.percentage}
-                        icon={investmentType.icon}
-                        color={investmentType.color}
+        <SwipeableScreen
+            onSwipeLeft={handleSwipeLeft}
+            onSwipeRight={handleSwipeRight}
+            canSwipeLeft={portfolio.investmentTypes.findIndex(t => t.id === selectedInvestmentTypeId) < portfolio.investmentTypes.length - 1}
+            canSwipeRight={true}
+        >
+            <View style={styles.container}>
+                <LinearGradient colors={['#fdf2f8', '#e0f2fe']} style={styles.gradient}>
+                    <PortfolioHeader
+                        title={`${investmentType.name} Portfolio`}
+                        onMenuPress={() => setShowSettingsDrawer(true)}
+                        onWalletPress={handleWalletPress}
                     />
 
-                    {hasAssets ? (
-                        <>
-                            {/* Pie Chart - Non-interactive for individual assets */}
-                            <View style={styles.pieChartSection}>
-                                <View style={styles.pieChartContainer}>
-                                    <PieChart segments={pieSegments} size={300} interactive={false} />
-                                    {/* Center label - Change info */}
-                                    <View style={styles.centerLabel}>
-                                        {/* First line: Icon + Percentage */}
-                                        <View style={styles.centerRow}>
-                                            <Image
-                                                source={investmentType.change >= 0
-                                                    ? require('../../../assets/icons/increase.png')
-                                                    : require('../../../assets/icons/decrease.png')
-                                                }
-                                                style={styles.changeIcon}
-                                                resizeMode="contain"
-                                            />
+                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                        {/* Portfolio Summary */}
+                        <PortfolioSummary
+                            totalValue={investmentType.totalValue}
+                            change={investmentType.change}
+                            changePercentage={investmentType.changePercentage}
+                            percentage={investmentType.percentage}
+                            icon={investmentType.icon}
+                            color={investmentType.color}
+                        />
+
+                        {hasAssets ? (
+                            <>
+                                {/* Pie Chart - Non-interactive for individual assets */}
+                                <View style={styles.pieChartSection}>
+                                    <View style={styles.pieChartContainer}>
+                                        <PieChart segments={pieSegments} size={300} interactive={false} />
+                                        {/* Center label - Change info */}
+                                        <View style={styles.centerLabel}>
+                                            {/* First line: Icon + Percentage */}
+                                            <View style={styles.centerRow}>
+                                                <Image
+                                                    source={investmentType.change >= 0
+                                                        ? require('../../../assets/icons/increase.png')
+                                                        : require('../../../assets/icons/decrease.png')
+                                                    }
+                                                    style={styles.changeIcon}
+                                                    resizeMode="contain"
+                                                />
+                                                <Text style={[
+                                                    styles.centerPercentage,
+                                                    { color: investmentType.change >= 0 ? '#10b981' : '#ef4444' }
+                                                ]}>
+                                                    {investmentType.changePercentage >= 0 ? '+' : ''}{investmentType.changePercentage.toFixed(2)}%
+                                                </Text>
+                                            </View>
+                                            {/* Separator line */}
+                                            <View style={styles.centerSeparator} />
+                                            {/* Second line: Value */}
                                             <Text style={[
-                                                styles.centerPercentage,
+                                                styles.centerValue,
                                                 { color: investmentType.change >= 0 ? '#10b981' : '#ef4444' }
                                             ]}>
-                                                {investmentType.changePercentage >= 0 ? '+' : ''}{investmentType.changePercentage.toFixed(2)}%
+                                                {investmentType.change >= 0 ? '+' : ''}${Math.abs(investmentType.change).toLocaleString()}
                                             </Text>
                                         </View>
-                                        {/* Separator line */}
-                                        <View style={styles.centerSeparator} />
-                                        {/* Second line: Value */}
-                                        <Text style={[
-                                            styles.centerValue,
-                                            { color: investmentType.change >= 0 ? '#10b981' : '#ef4444' }
-                                        ]}>
-                                            {investmentType.change >= 0 ? '+' : ''}${Math.abs(investmentType.change).toLocaleString()}
-                                        </Text>
                                     </View>
                                 </View>
-                            </View>
 
-                            {/* Assets Section */}
-                            <View style={styles.assetsSection}>
-                                <Text style={styles.sectionTitle}>
-                                    {investmentType.name} Assets
-                                </Text>
+                                {/* Assets Section */}
+                                <View style={styles.assetsSection}>
+                                    <Text style={styles.sectionTitle}>
+                                        {investmentType.name} Assets
+                                    </Text>
 
-                                <View style={styles.assetsList}>
-                                    {investmentType.assets.map((asset, index) => (
-                                        <SwipeableCard
-                                            key={asset.id}
-                                            onDelete={() => handleDeleteAsset(asset.id)}
-                                            enabled
-                                        >
-                                            <AssetCard
-                                                id={asset.id}
-                                                name={asset.name}
-                                                percentage={asset.percentage}
-                                                value={asset.value}
-                                                change={asset.change}
-                                                changePercentage={asset.changePercentage}
-                                                icon={investmentType.icon}
-                                                color={pieSegments[index]?.color || assetColors[index % assetColors.length]}
-                                                variant="static"
-                                            />
-                                        </SwipeableCard>
-                                    ))}
+                                    <View style={styles.assetsList}>
+                                        {investmentType.assets.map((asset, index) => (
+                                            <SwipeableCard
+                                                key={asset.id}
+                                                onDelete={() => handleDeleteAsset(asset.id)}
+                                                enabled
+                                            >
+                                                <AssetCard
+                                                    id={asset.id}
+                                                    name={asset.name}
+                                                    percentage={asset.percentage}
+                                                    value={asset.value}
+                                                    change={asset.change}
+                                                    changePercentage={asset.changePercentage}
+                                                    icon={investmentType.icon}
+                                                    color={pieSegments[index]?.color || assetColors[index % assetColors.length]}
+                                                    variant="static"
+                                                />
+                                            </SwipeableCard>
+                                        ))}
+                                    </View>
                                 </View>
-                            </View>
-                        </>
-                    ) : (
-                        <EmptyInvestmentTypeState
-                            investmentTypeName={investmentType.name}
-                            onAddAsset={() => setShowAddAssetDialog(true)}
-                        />
+                            </>
+                        ) : (
+                            <EmptyInvestmentTypeState
+                                investmentTypeName={investmentType.name}
+                                onAddAsset={() => setShowAddAssetDialog(true)}
+                            />
+                        )}
+                    </ScrollView>
+
+                    {/* Floating Add Asset Button */}
+                    {hasAssets && (
+                        <TouchableOpacity
+                            style={styles.floatingAddButton}
+                            onPress={() => setShowAddAssetDialog(true)}
+                        >
+                            <MaterialCommunityIcons name="plus" size={28} color="#000" />
+                        </TouchableOpacity>
                     )}
-                </ScrollView>
 
-                {/* Floating Add Asset Button */}
-                {hasAssets && (
-                    <TouchableOpacity
-                        style={styles.floatingAddButton}
-                        onPress={() => setShowAddAssetDialog(true)}
-                    >
-                        <MaterialCommunityIcons name="plus" size={28} color="#000" />
-                    </TouchableOpacity>
-                )}
+                    <BottomNav
+                        investmentTypes={portfolio.investmentTypes}
+                        activeTab={selectedInvestmentTypeId}
+                        onTabChange={handleTabChange}
+                        onAddType={() => setShowAddTypeModal(true)}
+                    />
 
-                <BottomNav
-                    investmentTypes={portfolio.investmentTypes}
-                    activeTab={selectedInvestmentTypeId}
-                    onTabChange={handleTabChange}
-                    onAddType={() => setShowAddTypeModal(true)}
-                />
+                    <AddInvestmentTypeModal
+                        visible={showAddTypeModal}
+                        onClose={() => setShowAddTypeModal(false)}
+                        onSelectType={addInvestmentType}
+                        existingTypes={activeInvestmentTypeIds}
+                    />
 
-                <AddInvestmentTypeModal
-                    visible={showAddTypeModal}
-                    onClose={() => setShowAddTypeModal(false)}
-                    onSelectType={addInvestmentType}
-                    existingTypes={activeInvestmentTypeIds}
-                />
+                    <AddAssetDialog
+                        visible={showAddAssetDialog}
+                        onClose={() => setShowAddAssetDialog(false)}
+                        onAdd={handleAddAsset}
+                        investmentTypeName={investmentType.name}
+                    />
 
-                <AddAssetDialog
-                    visible={showAddAssetDialog}
-                    onClose={() => setShowAddAssetDialog(false)}
-                    onAdd={handleAddAsset}
-                    investmentTypeName={investmentType.name}
-                />
-
-                <SettingsDrawer
-                    visible={showSettingsDrawer}
-                    onClose={() => setShowSettingsDrawer(false)}
-                />
-            </LinearGradient>
-        </View>
+                    <SettingsDrawer
+                        visible={showSettingsDrawer}
+                        onClose={() => setShowSettingsDrawer(false)}
+                    />
+                </LinearGradient>
+            </View>
+        </SwipeableScreen>
     )
 }
 
