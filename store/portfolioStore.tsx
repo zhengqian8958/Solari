@@ -172,6 +172,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 // Convert WalletAsset to Asset
                 const asset: Asset = {
                     id: walletAsset.id,
+                    mint: walletAsset.mint, // Keep mint address for category matching
                     name: walletAsset.name,
                     symbol: walletAsset.symbol,
                     value: walletAsset.value,

@@ -100,13 +100,48 @@ export default function InvestmentTypeScreen() {
         }
     }
 
-    // Get color shades specific to this investment type
-    const assetColors = getInvestmentTypeShades(investmentType.id, investmentType.assets.length || 6)
+    // For crypto: group tokens NOT in the 4 featured mints into "Other"
+    // Source of truth: the 4 addresses listed as featured in tokenMap.ts
+    const FEATURED_CRYPTO_MINTS = new Set([
+        'So11111111111111111111111111111111111111112',      // SOL
+        '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh',  // BTC (wrapped)
+        '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',  // ETH (WETH on Solana)
+        'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3',   // SKR
+    ])
+    const isCrypto = investmentType.id === 'crypto'
 
-    const pieSegments = investmentType.assets.map((asset, index) => ({
+    const isFeatured = (a: any) =>
+        FEATURED_CRYPTO_MINTS.has(a.mint) || FEATURED_CRYPTO_MINTS.has(a.id)
+
+    // Build the displayed asset list (either all assets or grouped crypto list)
+    const displayedAssets = isCrypto
+        ? (() => {
+            const featured = investmentType.assets.filter(isFeatured)
+            const others = investmentType.assets.filter(a => !isFeatured(a))
+            if (others.length === 0) return featured
+            const otherValue = others.reduce((sum, a) => sum + a.value, 0)
+            const otherChange = others.reduce((sum, a) => sum + a.change, 0)
+            const otherPercentage = others.reduce((sum, a) => sum + a.percentage, 0)
+            const otherChangePercentage =
+                otherValue > 0 ? (otherChange / (otherValue - otherChange)) * 100 : 0
+            return [
+                ...featured,
+                {
+                    id: 'other',
+                    name: 'Other',
+                    value: otherValue,
+                    change: otherChange,
+                    percentage: otherPercentage,
+                    changePercentage: otherChangePercentage,
+                },
+            ]
+        })()
+        : investmentType.assets
+
+    const pieSegments = displayedAssets.map((asset, index) => ({
         id: asset.id,
         percentage: asset.percentage,
-        color: assetColors[index % assetColors.length], // Use investment type-specific colors
+        color: getInvestmentTypeShades(investmentType.id, displayedAssets.length)[index],
     }))
 
     const hasAssets = investmentType.assets.length > 0
@@ -193,25 +228,42 @@ export default function InvestmentTypeScreen() {
                                     </Text>
 
                                     <View style={styles.assetsList}>
-                                        {investmentType.assets.map((asset, index) => (
-                                            <SwipeableCard
-                                                key={asset.id}
-                                                onDelete={() => handleDeleteAsset(asset.id)}
-                                                enabled
-                                            >
+                                        {displayedAssets.map((asset, index) => {
+                                            const isOther = asset.id === 'other'
+                                            return isOther ? (
+                                                // "Other" entry is not swipe-deletable
                                                 <AssetCard
-                                                    id={asset.id}
-                                                    name={asset.name}
+                                                    key="other"
+                                                    id="other"
+                                                    name="Other"
                                                     percentage={asset.percentage}
                                                     value={asset.value}
                                                     change={asset.change}
                                                     changePercentage={asset.changePercentage}
                                                     icon={investmentType.icon}
-                                                    color={pieSegments[index]?.color || assetColors[index % assetColors.length]}
+                                                    color={pieSegments[index]?.color ?? '#b794f4'}
                                                     variant="static"
                                                 />
-                                            </SwipeableCard>
-                                        ))}
+                                            ) : (
+                                                <SwipeableCard
+                                                    key={asset.id}
+                                                    onDelete={() => handleDeleteAsset(asset.id)}
+                                                    enabled
+                                                >
+                                                    <AssetCard
+                                                        id={asset.id}
+                                                        name={asset.name}
+                                                        percentage={asset.percentage}
+                                                        value={asset.value}
+                                                        change={asset.change}
+                                                        changePercentage={asset.changePercentage}
+                                                        icon={investmentType.icon}
+                                                        color={pieSegments[index]?.color ?? '#b794f4'}
+                                                        variant="static"
+                                                    />
+                                                </SwipeableCard>
+                                            )
+                                        })}
                                     </View>
                                 </View>
                             </>

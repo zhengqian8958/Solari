@@ -6,6 +6,9 @@ export const TOKEN_CATEGORY_MAP: Record<string, string> = {
 
     // Crypto (Default fallbacks or specific majors like SOL)
     'So11111111111111111111111111111111111111112': 'crypto', // SOL
+    '3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh': 'crypto', // BTC
+    '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs': 'crypto', // ETH
+    'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3': 'crypto', // SKR
 
     // Commodities (gold, silver, xStocks, and Ondo tokenized assets)
     'Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re': 'commodities', // Gold (GLDx)
