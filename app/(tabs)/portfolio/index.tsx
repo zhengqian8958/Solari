@@ -10,6 +10,7 @@ import { PortfolioHeader } from '../../../components/portfolio/PortfolioHeader'
 import { BottomNav } from '../../../components/portfolio/BottomNav'
 import { AddInvestmentTypeModal } from '../../../components/portfolio/AddInvestmentTypeModal'
 import { SettingsDrawer } from '../../../components/portfolio/SettingsDrawer'
+import { WalletModal } from '../../../components/portfolio/WalletModal'
 import { SwipeableCard } from '../../../components/portfolio/SwipeableCard'
 import { EmptyHubState } from '../../../components/portfolio/EmptyHubState'
 import { WalletLoadingOverlay } from '../../../components/portfolio/WalletLoadingOverlay'
@@ -31,6 +32,7 @@ export default function PortfolioIndexScreen() {
 
     const [showAddTypeModal, setShowAddTypeModal] = useState(false)
     const [showSettingsDrawer, setShowSettingsDrawer] = useState(false)
+    const [showWalletModal, setShowWalletModal] = useState(false)
 
     const handlePieSegmentPress = (investmentTypeId: string) => {
         setSelectedInvestmentType(investmentTypeId)
@@ -52,8 +54,7 @@ export default function PortfolioIndexScreen() {
     }
 
     const handleWalletPress = () => {
-        // TODO: Integrate with existing MWA connection
-        console.log('Wallet pressed - connect to MWA')
+        setShowWalletModal(true)
     }
 
     const handleDeleteInvestmentType = async (typeId: string) => {
@@ -97,6 +98,11 @@ export default function PortfolioIndexScreen() {
                     <SettingsDrawer
                         visible={showSettingsDrawer}
                         onClose={() => setShowSettingsDrawer(false)}
+                    />
+
+                    <WalletModal
+                        visible={showWalletModal}
+                        onClose={() => setShowWalletModal(false)}
                     />
                 </LinearGradient>
             </View>
@@ -204,6 +210,11 @@ export default function PortfolioIndexScreen() {
                     <SettingsDrawer
                         visible={showSettingsDrawer}
                         onClose={() => setShowSettingsDrawer(false)}
+                    />
+
+                    <WalletModal
+                        visible={showWalletModal}
+                        onClose={() => setShowWalletModal(false)}
                     />
                 </LinearGradient>
             </View>
