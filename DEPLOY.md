@@ -161,10 +161,56 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.gradle\caches\transforms-3"
 ## 后续版本更新流程
 
 1. 更新代码，提交 git
-2. 更新 `app.json` 中的 `version`，更新 `android/app/build.gradle` 中的 `versionCode`（每次发布必须递增）
+2. 更新版本号：
+   - **方式 1 (只打原生包时最快)**: 直接修改 `android/app/build.gradle` 中的 `versionCode` (整数，每次发版必须 +1) 和 `versionName` (如 "1.0.1")。
+   - **方式 2 (标准的 Expo 方式)**: 修改 `app.json` 中的 `version` 和 `android.versionCode`，然后需运行 `npx expo prebuild` 才会覆写同步到 `build.gradle` 层。如果修改了 `package` 包名，也必须用 `prebuild --clean` 重新生成目录。
 3. 在 `C:\Dev\solari\android` 下运行 `.\gradlew assembleRelease`
 4. 验证签名
 5. 上传新 APK 到 dApp Store
+
+---
+
+## 常用 ADB 与开发辅助命令
+
+### 1. 将打包好的 APK 直接安装到调试设备
+当你的手机用数据线连着并在开发者模式下，或是模拟器处于打开状态时，可以通过命令行直接安装：
+```powershell
+# -r 代表覆盖旧版本安装
+adb install -r android\app\build\outputs\apk\release\app-release.apk
+```
+
+### 2. 模拟器卡死重启/救援
+如果遇到 Android 模拟器完全挂起没有响应：
+```powershell
+# 1. 发送软重启指令
+adb reboot
+
+# 2. 强制杀掉模拟器实例 (如果 reboot 无效)
+adb emu kill
+```
+
+### 3. 使用命令从设备卸载 App
+如果你更换了包名导致设备上出现了“双黄蛋”，或者原先的环境数据紊乱，可以静默完全卸载应用：
+```powershell
+adb uninstall <你的包名>
+# 例如：
+# adb uninstall com.beeman.web3jsexpo
+# adb uninstall com.solari.app
+```
+
+### 4. `.env` 更新及 C++ 报错后的终极重建清理
+Expo 的 `.env` 环境变量是在打包时“硬编码”进 JavaScript 里的。如果只是修改 `.env` 再次 `assembleRelease` 会被缓存跳过。此时需要清理缓存再编译。
+但如果遇到 `CMake Error` 找不到 `node_modules/.../codegen/jni`，说明传统的 `gradlew clean` 阵亡了。**使用物理清理法解决**：
+```powershell
+# 回到项目根目录执行
+Remove-Item -Recurse -Force android/app/.cxx
+Remove-Item -Recurse -Force android/app/build
+Remove-Item -Recurse -Force android/build
+
+# 强清结束后重新打包
+cd android
+.\gradlew assembleRelease
+```
 
 ---
 

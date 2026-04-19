@@ -3,7 +3,7 @@ import { useAuth } from '@/components/auth/auth-provider'
 import { AppView } from '@/components/app-view'
 import { AppConfig } from '@/constants/app-config'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Dimensions, Linking } from 'react-native'
 import { LoginMascot } from '@/components/auth/LoginMascot'
 import { PORTFOLIO_COLORS } from '@/constants/portfolioTheme'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -49,8 +49,20 @@ export default function SignIn() {
 
           {/* Terms text */}
           <Text style={styles.termsText}>
-            By connecting, you agree to the{' '}
-            <Text style={styles.termsLink}>terms</Text>
+            By connecting, you agree to our{' '}
+            <Text 
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://solariapp.xyz/#privacy')}
+            >
+              privacy
+            </Text>
+            {' '}and{' '}
+            <Text 
+              style={styles.termsLink}
+              onPress={() => Linking.openURL('https://solariapp.xyz/#terms')}
+            >
+              terms
+            </Text>
           </Text>
         </View>
       </SafeAreaView>
