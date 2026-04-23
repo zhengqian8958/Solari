@@ -5,7 +5,7 @@ import { ClusterNetwork } from '@/components/cluster/cluster-network'
 export class AppConfig {
   static name = 'Solari'
   static slogan = 'Where crypto becomes wealth'
-  static uri = 'https://example.com'
+  static uri = 'https://solariapp.xyz'
   static clusters: Cluster[] = [
     {
       id: 'solana:devnet',
